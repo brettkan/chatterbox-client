@@ -6,6 +6,14 @@ var app = {
 app.server = 'https://api.parse.com/1/classes/chatterbox';
 
 app.init = function() {
+  $('#main').on('click', '.username', function () {
+    app.addFriend();
+  });
+  $('#main').on('submit', '.submit', function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    app.handleSubmit();
+  });
 };
 
 app.send = function(message) {
@@ -55,8 +63,8 @@ app.clearMessages = function() {
 };
 
 app.addMessage = function(message) {
-  var $newChat = $('<div></div>');
-  $newChat.append("<span>" + message.username + "</span>");
+  var $newChat = $("<div class='chat'></div>");
+  $newChat.append("<span class='username'>" + message.username + "</span>");
   $newChat.append("<span>" + message.text + "</span>");
 
   $("#chats").append($newChat);
@@ -68,7 +76,20 @@ app.addRoom = function(room) {
   $("#roomSelect").append($newRoom);
 };
 
+app.addFriend = function () {
 
+};
+
+app.handleSubmit = function () {
+  var text = $('#message').val();
+  debugger;
+  app.send(text);
+}
+
+// $(document).ready(function () {
+
+//   app.init();
+// });
 
 
 

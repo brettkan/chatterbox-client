@@ -6,7 +6,7 @@ body {
 }
 
 #main {
-    width: 500px;
+    width: 600px;
     margin: auto;
     text-align: left;
     background: white;
@@ -81,4 +81,34 @@ form input[type=text] {
 
 .spinner img {
     padding: 10px;
+}
+
+#friendList {
+  margin: 10px;
+  float: right;
+  width: 100px;
+  height: 400px;
+  border: 1px solid black;
+  background: #aaa;
+}
+
+#chats {
+  margin: 10px;
+  border: 1px solid black;
+  float: left;
+  width: 400px;
+  height: 620px;
+}
+
+#roomSelect {
+  margin: 10px;
+  float: right;
+  width: 100px;
+  height: 200px;
+  border: 1px solid black;
+  background: #aaa;
+}
+
+#send {
+
 }
