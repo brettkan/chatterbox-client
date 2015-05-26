@@ -5,16 +5,23 @@ var app = {
 };
 
 app.server = 'https://api.parse.com/1/classes/chatterbox';
+app.allRooms = {};
 
 app.init = function() {
-  $('#main').on('click', '.username', function () {
+  $('#main').on('click', '.username', function (event) {
     app.addFriend($(this).val());
   });
-  $('#main').on('submit', '.submit', function (event) {
-    event.preventDefault();
+  $('form').submit(function (event) {
+    //event.preventDefault();
     event.stopPropagation();
     app.handleSubmit();
   });
+  $('#roomSelect').on('click', '.chatroom', function (event) {
+    var selector = $(this).text();
+    $('.chat').hide();
+    $('#chats').find('.'+selector).parent().show();
+
+  })
 };
 
 app.send = function(message) {
@@ -54,6 +61,10 @@ app.fetch = function() {
 
         app.addMessage(data.results[i]);
       }
+
+      for (var key in app.allRooms) {
+        app.addRoom(key);
+      }
     },
     error: function (data) {
       // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -65,25 +76,31 @@ app.fetch = function() {
 
 app.clearMessages = function() {
   $("#chats").empty();
+  $("#roomSelect").empty();
 };
 
 app.addMessage = function(message) {
   var $newChat = $("<div class='chat'></div>");
-  if (message.username && message.username.match(/.*[<>&'"].*/)) { message.username = 'invalid'; }
-  $newChat.append("<span class='username'>" + message.username + "</span>");
+  //if (message.username && message.username.match(/.*[<>&'"].*/)) { message.username = 'invalid'; }
+  var username = _.escape(message.username);
+  $newChat.append("<span class='username'>" + username + "</span>");
 
-  if (message.text && message.text.match(/.*[<>&'"].*/)) { message.text = 'invalid'; }
-  $newChat.append("<span class='words'>" + message.text + "</span>");
+  //if (message.text && message.text.match(/.*[<>&'"].*/)) { message.text = 'invalid'; }
+  var words = _.escape(message.text);
+  $newChat.append("<span class='words'>" + words + "</span>");
 
-  if (message.roomname && message.roomname.match(/.*[<>&'"].*/)) { message.roomname = 'invalid'; }
-  $newChat.append("<span class='roomname'>" + message.roomname + "</span>");
+  //if (message.roomname && message.roomname.match(/.*[<>&'"].*/)) { message.roomname = 'invalid'; }
+  var roomname = _.escape(message.roomname);
+  $newChat.append("<span class="+ roomname + ">" + roomname + "</span>");
+  app.allRooms[roomname] = roomname;
+
 
   $("#chats").append($newChat);
 };
 
 
 app.addRoom = function(room) {
-  var $newRoom = $('<div class=' + room + '>' + room + '</div>');
+  var $newRoom = $('<div class="chatroom ' + room + '">' + room + '</div>');
   $("#roomSelect").append($newRoom);
 };
 
@@ -94,9 +111,14 @@ app.addFriend = function (name) {
 };
 
 app.handleSubmit = function () {
-  var text = $('#message').val();
-  debugger;
-  app.send(text);
+
+  var message = {};
+  message.text = $('#message').val();
+  message.roomname = $('.currentRoom').val();
+  message.username = location.search.slice(10);
+
+
+  app.send(message);
 }
 
 // app.showMessages = function () {
@@ -110,6 +132,7 @@ app.handleSubmit = function () {
 $(document).ready(function () {
 
   app.fetch();
+  setInterval(app.fetch, 10000);
   // app.showMessages();
   app.init();
 });
