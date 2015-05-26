@@ -63,6 +63,7 @@ form input[type=text] {
     padding: 5px;
     margin-bottom: 5px;
     background-color: #eee;
+    border: 1px dashed black;
 }
 
 .chat .username {
@@ -98,6 +99,7 @@ form input[type=text] {
   float: left;
   width: 400px;
   height: 620px;
+  overflow: scroll;
 }
 
 #roomSelect {
@@ -111,4 +113,9 @@ form input[type=text] {
 
 #send {
 
+}
+
+.words, .username, .roomname {
+  width: 100%;
+  display: block;
 }

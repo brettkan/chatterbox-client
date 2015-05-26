@@ -1,13 +1,14 @@
 // YOUR CODE HERE:
 
 var app = {
+
 };
 
 app.server = 'https://api.parse.com/1/classes/chatterbox';
 
 app.init = function() {
   $('#main').on('click', '.username', function () {
-    app.addFriend();
+    app.addFriend($(this).val());
   });
   $('#main').on('submit', '.submit', function (event) {
     event.preventDefault();
@@ -48,7 +49,11 @@ app.fetch = function() {
     contentType: 'application/json',
     success: function (data) {
       console.log('chatterbox: Messages received');
-      console.log(data);
+      app.clearMessages();
+      for (var i = 0; i < data.results.length; i++) {
+
+        app.addMessage(data.results[i]);
+      }
     },
     error: function (data) {
       // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -64,8 +69,14 @@ app.clearMessages = function() {
 
 app.addMessage = function(message) {
   var $newChat = $("<div class='chat'></div>");
+  if (message.username && message.username.match(/.*[<>&'"].*/)) { message.username = 'invalid'; }
   $newChat.append("<span class='username'>" + message.username + "</span>");
-  $newChat.append("<span>" + message.text + "</span>");
+
+  if (message.text && message.text.match(/.*[<>&'"].*/)) { message.text = 'invalid'; }
+  $newChat.append("<span class='words'>" + message.text + "</span>");
+
+  if (message.roomname && message.roomname.match(/.*[<>&'"].*/)) { message.roomname = 'invalid'; }
+  $newChat.append("<span class='roomname'>" + message.roomname + "</span>");
 
   $("#chats").append($newChat);
 };
@@ -76,8 +87,10 @@ app.addRoom = function(room) {
   $("#roomSelect").append($newRoom);
 };
 
-app.addFriend = function () {
+app.addFriend = function (name) {
+  var $newFriend = $("<div class='friend'>"+ name + "</div>");
 
+  $("#friendList").append($newFriend);
 };
 
 app.handleSubmit = function () {
@@ -86,10 +99,20 @@ app.handleSubmit = function () {
   app.send(text);
 }
 
-// $(document).ready(function () {
+// app.showMessages = function () {
+//   app.clearMessages();
 
-//   app.init();
-// });
+//   for (var i = 0; i < app.messages.results.length; i++) {
+//     app.addMessage(app.messages.results[i]);
+//   }
+// }
+
+$(document).ready(function () {
+
+  app.fetch();
+  // app.showMessages();
+  app.init();
+});
 
 
 
