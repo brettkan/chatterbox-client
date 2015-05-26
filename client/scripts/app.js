@@ -6,23 +6,38 @@ var app = {
 
 app.server = 'https://api.parse.com/1/classes/chatterbox';
 app.allRooms = {};
+app.userFriends = {};
 
 app.init = function() {
+
+  //Add friend
   $('#main').on('click', '.username', function (event) {
-    app.addFriend($(this).val());
+    var selector = $(this).text();
+    $('#chats').find('div').css({'background-color': '#eee'});
+    $('#chats').find('.'+selector).parent().css({'background-color': '#ff7'});
+
+    if (!($(this).text() in app.userFriends)) {
+      app.userFriends[$(this).text()] = $(this).text();
+      app.addFriend($(this).text());
+    }
   });
+
+  //Message submission
   $('form').submit(function (event) {
     //event.preventDefault();
     event.stopPropagation();
     app.handleSubmit();
   });
+
+
+  //Selecting rooms
   $('#roomSelect').on('click', '.chatroom', function (event) {
     var selector = $(this).text();
     $('.chat').hide();
     $('#chats').find('.'+selector).parent().show();
-
   })
 };
+
 
 app.send = function(message) {
   $.ajax({
@@ -83,7 +98,7 @@ app.addMessage = function(message) {
   var $newChat = $("<div class='chat'></div>");
   //if (message.username && message.username.match(/.*[<>&'"].*/)) { message.username = 'invalid'; }
   var username = _.escape(message.username);
-  $newChat.append("<span class='username'>" + username + "</span>");
+  $newChat.append("<span class='username "+username + "'>" + username + "</span>");
 
   //if (message.text && message.text.match(/.*[<>&'"].*/)) { message.text = 'invalid'; }
   var words = _.escape(message.text);
@@ -105,7 +120,8 @@ app.addRoom = function(room) {
 };
 
 app.addFriend = function (name) {
-  var $newFriend = $("<div class='friend'>"+ name + "</div>");
+  var $newFriend = $("<div class='friend'>" + name + "</div>");
+
 
   $("#friendList").append($newFriend);
 };
