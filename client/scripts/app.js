@@ -1,5 +1,5 @@
 var Message = Backbone.Model.extend({
-
+  url: 'https://api.parse.com/1/classes/chatterbox/',
   initialize: function(message) {
     this.set({'message': _.escape(message.text),
       'username': _.escape(message.username),
@@ -14,12 +14,63 @@ var Message = Backbone.Model.extend({
 });
 
 var Messages = Backbone.Collection.extend({
+  url: 'https://api.parse.com/1/classes/chatterbox/',
+  model: Message,
 
-  model: Message
+  loadMessages: function() {
+    this.fetch({data: { order: '-createdAt'}});
+  },
+
+  parse: function(response, options) {
+    var results = [];
+    for (var i = response.results.length-1; i >= 0; i--) {
+      //var id = response.results[i].objectId;
+      //if (!(id in app.chats)) {
+        //app.chats[id] = response.results[i];
+      //chatroom.add(new Message(response.results[i]), {at: 0});
+      //}
+      results.push(response.results[i]);
+    }
+    //$('body').prepend(chatroomView.render());
+    return results;
+  }
+});
+
+var MessageView = Backbone.View.extend({
+  template: _.template('<div class="chat"> \
+                        <div class="username"><%- username %></div> \
+                        <div class="message"><%- text %></div> \
+                        <div class="chatroom"><%- roomname %></div> \
+                        </div>'),
+
+  render: function() {
+    this.$el.html(this.template(this.model.attributes));
+    return this.$el;
+  }
+
 });
 
 var MessagesView = Backbone.View.extend({
-  initialize: function () {},
+  initialize: function () {
+    // this.model.on('add', function(event) {
+
+    //   //Grouping messages by username
+    //   var username = this.models[0].get('username');
+    //   if (username in app.users) { app.users[username].push(this.models[0]); }
+    //   else { app.users[username] = [this.models[0]]; }
+
+    //   //Grouping messages by room
+    //   var room = this.models[0].get('chatroom');
+    //   if (room in app.rooms) { app.rooms[room].push(room); }
+    //   else {
+    //     app.rooms[room] = [this.models[0]];
+    //     app.addRoom(room);
+    //   }
+    // });
+    this.collection.on('sync', this.render, this);
+    this.onscreenMessages = {};
+
+  },
 
   render: function () {
     var html = [
@@ -49,19 +100,22 @@ var MessagesView = Backbone.View.extend({
 
 var chatroom = new Messages();
 
+var chatroomView = new MessagesView({ model:chatroom });
 
+//var roomsView = new MessagesView({ model: chatroom });
+
+//var friendsView = new MessagesView({ model: chatroom });
 
 
 // YOUR CODE HERE:
 
 var app = {
-
+  server : 'https://api.parse.com/1/classes/chatterbox',
+  chats : {},
+  users : {},
+  rooms : {},
+  userFriends : {}
 };
-
-app.server = 'https://api.parse.com/1/classes/chatterbox';
-app.chats= {};
-app.allRooms = {};
-app.userFriends = {};
 
 app.init = function() {
 
@@ -102,9 +156,6 @@ app.send = function(message) {
     type: 'POST',
     data: JSON.stringify(message),
     contentType: 'application/json',
-    // roomname: '8th floor',
-    // text: message,
-    // username: 'not anonymous',
     success: function (data) {
       console.log('chatterbox: Message sent');
       console.log(data);
@@ -117,51 +168,40 @@ app.send = function(message) {
 
 };
 
-app.fetch = function() {
-    $.ajax({
-      // always use this url
-      url: 'https://api.parse.com/1/classes/chatterbox',
-      type: 'GET',
-      // data: JSON.stringify(message),
-      contentType: 'application/json',
-      success: function (data) {
-        console.log('chatterbox: Messages received');
-        //app.clearMessages();
-        //chatroom.reset(null);
-        for (var i = 0; i < data.results.length; i++) {
-          var id = data.results[i].objectId
-          if (!(id in app.chats)) {
-            app.chats[id] = data.results[i];
-            chatroom.add(new Message(data.results[i]));
-          }
-        }
-        // for (var key in app.allRooms) {
-        //   app.addRoom(key, roomnum);
-        //   roomnum++
-        // }
-      },
-      error: function (data) {
-        // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
-        console.error('chatterbox: Failed to receive messages');
-      }
-    });
+// app.fetch = function() {
+//     $.ajax({
+//       // always use this url
+//       url: 'https://api.parse.com/1/classes/chatterbox',
+//       type: 'GET',
+//       contentType: 'application/json',
+//       data: {order: 'createdAt'},
+//       success: function (data) {
+//         console.log('chatterbox: Messages received');
+//         for (var i = 0; i < data.results.length; i++) {
+//           var id = data.results[i].objectId
+//           if (!(id in app.chats)) {
+//             app.chats[id] = data.results[i];
+//             chatroom.add(new Message(data.results[i]), {at: 0});
+//           }
+//         }
+//         $('body').prepend(chatroomView.render());
+//       },
+//       error: function (data) {
+//         // see: https://developer.mozilla.org/en-US/docs/Web/API/console.error
+//         console.error('chatterbox: Failed to receive messages');
+//       }
+//     });
 
-};
-
-app.clearMessages = function() {
-  $("#chats").empty();
-  $("#roomSelect").empty();
-};
+// };
 
 
-app.addRoom = function(room, num) {
-  var $newRoom = $('<div class="chatroom ' + num + '">' + room + '</div>');
+app.addRoom = function(room) {
+  var $newRoom = $('<div class="chatroom">' + room + '</div>');
   $("#roomSelect").append($newRoom);
 };
 
 app.addFriend = function (name) {
   var $newFriend = $("<div class='friend'>" + name + "</div>");
-
 
   $("#friendList").append($newFriend);
 };
@@ -173,30 +213,20 @@ app.handleSubmit = function () {
   message.roomname = $('.currentRoom').val();
   message.username = location.search.slice(10);
 
-
   app.send(message);
 }
 
-// app.showMessages = function () {
-//   app.clearMessages();
 
-//   for (var i = 0; i < app.messages.results.length; i++) {
-//     app.addMessage(app.messages.results[i]);
-//   }
-// }
 
 $(document).ready(function () {
-
-  app.fetch();
-  var chatroomView = new MessagesView({ model:chatroom });
-  setInterval(app.fetch, 5000);
-  // app.showMessages();
-  app.init();
-  $('body').prepend(chatroomView.render());
-  setInterval(function () {
-    $('body').prepend(chatroomView.render());
-  }, 5000);
+  chatroom.loadMessages();
+  //setInterval(chatroom.fetch, 5000);
 });
+//   app.fetch();
+//   $('body').prepend(chatroomView.render());
+//   setInterval(app.fetch, 5000);
+//   app.init();
+// });
 
 
 
