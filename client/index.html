@@ -8,6 +8,10 @@
     <!-- dependencies -->
     <script src="bower_components/jquery/jquery.min.js"></script>
     <script src="bower_components/underscore/underscore-min.js"></script>
+<<<<<<< HEAD
+=======
+    <script src="bower_components/backbone/backbone-min.js"></script>
+>>>>>>> d16e804fd0b965cc724d7417ddf812d5cc2c5a2a
     <!-- your scripts -->
     <script src="env/config.js"></script>
     <script src="scripts/app.js"></script>
@@ -15,7 +19,12 @@
   <body>
     <div id="main">
       <h1>chatterbox</h1>
-      <!-- Your HTML goes here! -->
+      <div class="spinner"><img src="images/spiffygif_46x46.gif"></div>
+      <form id='send'>
+        <textarea id='message' rows='4' cols='50' placeholder='Type your message here'></textarea>
+        <input class='submit' type='submit'>
+      </form>
+      <div id='chats'></div>
     </div>
   </body>
 </html>
